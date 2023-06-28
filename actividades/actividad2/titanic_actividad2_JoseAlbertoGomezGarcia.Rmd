@@ -1,0 +1,325 @@
+---
+title: "Actividad 2. Clasificación automática empleando keras/tensorflow y el dataset del Titanic"
+author: "José Alberto Gómez García"
+date: 30/03/2023
+output: 
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    df_print: paged
+---
+
+# Instalación de paquetes
+
+Reiniciamos la sesión de R. Se recomienda hacerlo antes de hacer instalación de paquetes.
+
+```{r}
+.rs.restartR()
+```
+
+Instalamos todos los paquetes de R necesarios para esta actividad. Antes he tenido que instalar también algunos paquetes del gestor de Linux que no tenía (probablemente por estar usando WSL2). Concretamente, los siguientes: libfontconfig1-dev libcurl4-openssl-dev libxml2-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
+
+```{r}
+install.packages("tidyverse")
+install.packages("caret")
+install.packages("reticulate")
+install.packages("tensorflow")
+install.packages("pROC")
+library(reticulate)
+path_to_python <- '/bin/python3'
+virtualenv_create("r-reticulate", python = path_to_python)
+install.packages("keras")
+library(keras)
+install_keras(envname = "r-reticulate")
+```
+
+Nos aseguramos que todo ha tenido éxito y podemos usar Tensorflow y Keras (aunque sea por CPU, en mi caso si que tengo CUDA preparado y puedo usar GPU).
+
+```{r}
+library(tensorflow)
+tf$constant("Hello Tensorflow!")
+library(keras)
+is_keras_available()
+```
+
+# Carga de paquetes
+
+Cargamos todos los paquetes necesarios. Al estar usando WSL2 nos dará un error diciendo que el sistema no está iniciado con systemd. Esto no influye a la hora de ejecutar este cuaderno.
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(keras)
+library(tensorflow)
+library(tidyverse)
+library(caret)
+library(scales)
+library(pROC)
+set.seed(0)
+```
+
+# Lectura de datos
+
+Leemos los datos de la misma manera que se hizo en la actividad anterior
+
+```{r}
+data <- read_csv('train.csv') %>%
+  select(Survived, Pclass, Sex, Age, Fare) %>%
+  mutate(Sex = as.numeric(as.factor(Sex)) - 1) %>%
+  na.omit()
+
+data
+```
+
+# División en datos de entrenamiento y validación
+
+Dividimos los datos de la manera similar a la tarea anterior, manteniendo un 70% de los datos para entrenamiento y un 30% para validar los modelos
+
+```{r}
+trainIndex <- createDataPartition(data$Survived, p = .7, list = FALSE)
+train      <- data[trainIndex, ] 
+val        <- data[-trainIndex, ]
+
+x_train <- train %>%
+  select(-Survived) %>%
+  data.matrix()
+
+y_train <- train %>%
+  select(Survived) %>%
+  data.matrix()
+
+x_val <- val %>%
+  select(-Survived) %>%
+  data.matrix()
+
+y_val <- val %>%
+  select(Survived) %>%
+  data.matrix()
+```
+
+# Pruebas y experimentos
+
+En esta sección construiremos varias arquitecturas de redes neuronales y probaremos la bondad de sus predicciones. A la hora de entrenar el modelo se seguirán algunas recomendaciones y conclusiones que tratamos en la asignatura "Inteligencia Computacional" el pasado cuatrimestre. Estas son: - Utilizar tamaños de mini-lote potencias de 2 entre 2 y 64. Este parámetro se tiene que ajustar en función del tamaño del dataset, complejidad del modelo y recursos hardware disponibles. - Reservar una pequeña parte de entrenamiento para validación. (Distingase de la validación final del modelo sobre el otro 30% que reservamos, a la que llamaremos test) - Usar el optimizador ADAM suele proporcionar mejores resultados que otros optimizadores como SGB, RMSProp, etc.
+
+A la hora de entrenar utilizaremos un número relativamente alto de eṕocas, y nos fijaremos como evoluciona la precisión y función de pérdida. Lo ideal sería emplear parada temprana si empezamos a obtener peores resultados que en épocas anteriores o no hay mejoría, pero no he conseguido hacer funcionar esta opción.
+
+## Red neuronal simple (monocapa)
+
+Comenzaremos con una red neuronal sumamente sencilla, la cual tendrá una única capa de entrada con 32 neuronas con activación RELU y una capa de salida con activación sigmoidal (de una única neurona ya que la clasificación es binaria)
+
+```{r}
+modelA <- keras_model_sequential()
+modelA <- modelA %>% 
+   layer_dense(units = 32, activation = "relu", input_shape = c(ncol(data) - 1)) %>%
+   layer_dense(units = 1, activation = "sigmoid")
+modelA %>% compile(
+  loss = 'binary_crossentropy',
+  metrics = c('accuracy'),
+  optimizer = optimizer_adam()
+)
+summary(modelA)
+```
+
+```{r}
+historyA <- modelA %>% 
+  fit(
+    x_train, y_train, 
+    epochs = 100,             
+    batch_size = 64,         
+    validation_split = 0.12
+  )
+plot(historyA)
+```
+
+```{r}
+metricsA <- modelA %>% evaluate(x_val, y_val)
+predictionsA <- modelA %>% predict(x_val) %>% `>`(0.5) %>% k_cast("int32")
+y_val_vectorA = as.factor(as.integer(y_val))
+pred_vectorA = as.factor(as.vector(predictionsA))
+cmA <- confusionMatrix(y_val_vectorA, pred_vectorA)
+cm_propA <- prop.table(cmA$table)
+cmA$table
+
+cm_tibbleA <- as_tibble(cmA$table) 
+
+ggplot(data = cm_tibbleA) + 
+  geom_tile(aes(x=Reference, y=Prediction, fill=n), colour = "white") +
+  geom_text(aes(x=Reference, y=Prediction, label=n), colour = "white") +
+  scale_fill_continuous(trans = 'reverse')
+```
+
+Se obtienen precisiones para entrenamiento, validación (en el entrenamiento) y test (o validación final) de 0.7705, 0.7667 y 0.7570 respectivamente.
+
+## Red neuronal v2 (2 capas)
+
+En este segundo apartado probaremos a añadir una capa oculta totalmente conectada con 16 neuronas, también con activación RELU.
+
+```{r}
+modelB <- keras_model_sequential()
+modelB <- modelB %>% 
+  layer_dense(units = 32, activation = "relu", input_shape = c(ncol(data) - 1)) %>%
+  layer_dense(units = 16, activation = "relu") %>%
+  layer_dense(units = 1, activation = "sigmoid")
+modelB %>% compile(
+  loss = 'binary_crossentropy',
+  metrics = c('accuracy'),
+  optimizer = optimizer_adam()
+)
+summary(modelB)
+```
+
+```{r}
+historyB <- modelB %>% 
+  fit(
+    x_train, y_train, 
+    epochs = 100,         
+    batch_size = 64,        
+    validation_split = 0.12
+  )
+plot(historyB)
+```
+
+```{r}
+modelB %>% evaluate(x_val, y_val)
+predictionsB <- modelB %>% predict(x_val) %>% `>`(0.5) %>% k_cast("int32")
+y_val_vectorB = as.factor(as.integer(y_val))
+pred_vectorB = as.factor(as.vector(predictionsB))
+cmB <- confusionMatrix(y_val_vectorB, pred_vectorB)
+cm_propB <- prop.table(cmB$table)
+cmB$table
+
+cm_tibbleB <- as_tibble(cmB$table) 
+
+ggplot(data = cm_tibbleB) + 
+  geom_tile(aes(x=Reference, y=Prediction, fill=n), colour = "white") +
+  geom_text(aes(x=Reference, y=Prediction, label=n), colour = "white") +
+  scale_fill_continuous(trans = 'reverse') 
+```
+
+Se obtienen precisiones para entrenamiento, validación (en el entrenamiento) y test (o validación final) de 0.7955, 0.8000 y 0.7617 respectivamente. Obtenemos algo de mejoría respecto del apartado anterior.
+
+## Red neuronal v3 (3 capas con más neuronas)
+
+Probaremos ahora a emplear una red neuronal con 3 capas ocultas, todas ellas con activación RELU. En esta ocasión las capas ocultas tendrán un mayor número de neuronas.
+
+```{r}
+modelC <- keras_model_sequential()
+modelC <- modelC %>%
+    layer_dense(units = 128, activation = "relu", input_shape = c(ncol(data) - 1)) %>%
+    layer_dense(units = 64, activation = "relu") %>%
+    layer_dense(units = 32, activation = "relu") %>%
+    layer_dense(units = 1, activation = "sigmoid")
+modelC %>% compile(
+  loss = 'binary_crossentropy',
+  metrics = c('accuracy'),
+  optimizer = optimizer_adam()
+)
+summary(modelC)
+```
+
+```{r}
+historyC <- modelC %>% 
+  fit(
+    x_train, y_train, 
+    epochs = 100,
+    batch_size = 64,
+    validation_split = 0.12
+  )
+plot(historyC)
+```
+
+```{r}
+modelC %>% evaluate(x_val, y_val)
+predictionsC <- modelC %>% predict(x_val) %>% `>`(0.5) %>% k_cast("int32")
+y_val_vector = as.factor(as.integer(y_val))
+pred_vector = as.factor(as.vector(predictionsC))
+cmC <- confusionMatrix(y_val_vector, pred_vector)
+cm_propC <- prop.table(cmC$table)
+cmC$table
+
+cm_tibbleC <- as_tibble(cmC$table) 
+
+ggplot(data = cm_tibbleC) + 
+  geom_tile(aes(x=Reference, y=Prediction, fill=n), colour = "white") +
+  geom_text(aes(x=Reference, y=Prediction, label=n), colour = "white") +
+  scale_fill_continuous(trans = 'reverse') 
+```
+
+Se obtienen precisiones para entrenamiento, validación (en el entrenamiento) y test (o validación final) de 0.7909, 0.8333 y 0.7383 respectivamente. Los resultados para el conjunto de test son algo peores que en los casos anteriores, por lo que no utilizaremos capas con tantas neuronas.
+
+## Red neuronal v4 (con dropout)
+
+En esta ocasión utilizaremos una red neuronal algo más compleja. Tendrá 4 capas totalmente conectadas, de manera que entre la segunda y la tercera, y entre la tercera y la cuarta, haya capas de "dropout". Este tipo de capas permite "desactivar" aleatoriamente algunas neuronas en algunas épocas, de manera que intentamos evitar el sobreajuste que pueda producirse. Utilizaremos también un número de épocas bastante mayor.
+
+```{r}
+modelD <- keras_model_sequential()
+model <- modelD %>% 
+  layer_dense(units = 64, activation = "relu", input_shape = c(ncol(data) - 1)) %>%
+  layer_dense(units = 32, activation = "sigmoid") %>%
+  layer_dropout(rate = 0.25) %>% 
+  layer_dense(units = 16, activation = "sigmoid") %>% 
+  layer_dropout(rate = 0.25) %>% 
+  layer_dense(units = 8, activation = "sigmoid") %>% 
+  layer_dense(units = 1, activation = "sigmoid")
+modelD %>% compile(
+  loss = 'binary_crossentropy',
+  metrics = c('accuracy'),
+  optimizer = optimizer_adam()
+)
+summary(modelD)
+```
+
+```{r}
+historyD <- modelD %>% 
+  fit(
+    x_train, y_train, 
+    epochs = 250,
+    batch_size = 64,
+    validation_split = 0.12
+  )
+plot(historyD)
+```
+
+```{r}
+modelD %>% evaluate(x_val, y_val)
+predictionsD <- modelD %>% predict(x_val) %>% `>`(0.5) %>% k_cast("int32")
+y_val_vector = as.factor(as.integer(y_val))
+pred_vector = as.factor(as.vector(predictionsD))
+cmD <- confusionMatrix(y_val_vector, pred_vector)
+cm_propD <- prop.table(cmD$table)
+cmC$table
+
+cm_tibbleD <- as_tibble(cmD$table) 
+
+ggplot(data = cm_tibbleD) + 
+  geom_tile(aes(x=Reference, y=Prediction, fill=n), colour = "white") +
+  geom_text(aes(x=Reference, y=Prediction, label=n), colour = "white") +
+  scale_fill_continuous(trans = 'reverse') 
+```
+
+Se obtienen precisiones para entrenamiento, validación (en el entrenamiento) y test (o validación final) de 0.8023, 0.8500 y 0.7804 respectivamente. Los resultados en test son los mejores obtenidos durante esta experimentación.
+
+# Tablas comparativas
+
+## Medidas de la precisión
+
+| Modelo                                  | Entrenamiento | Validación | Test   |
+|-----------------------------------------|---------------|------------|--------|
+| NN simple (monocapa - 32)               | 0.7705        | 0.7667     | 0.7570 |
+| NN con dos capas (32-16)                | 0.7955        | 0.8000     | 0.7617 |
+| NN con tres capas (128-64-32)           | 0.7909        | 0.8333     | 0.7383 |
+| NN con dropout (64-32-D0.25-16-D0.25-8) | 0.8023        | 0.8500     | 0.7804 |
+
+## Medidas de pérdida
+
+| Modelo                                  | Entrenamiento | Validación | Test   |
+|-----------------------------------------|---------------|------------|--------|
+| NN simple (monocapa - 32)               | 0.4936        | 0.4797     | 0.5180 |
+| NN con dos capas (32-16)                | 0.4653        | 0.4470     | 0.5076 |
+| NN con tres capas (128-64-32)           | 0.4430        | 0.4874     | 0.5797 |
+| NN con dropout (64-32-16-D0.25-8-D0.25) | 0.4328        | 0.3967     | 0.4645 |
+
+# Conclusiones
+
+Los resultados obtenidos son bastante buenos, obteniéndose precisiones mayores al 77% en los conjuntos de entrenamiento y validación durante dicho entrenamiento, mientras que en el conjunto de test se obtienen precisiones mayores al 73.8%. Resulta curioso que la tercera red neuronal, con más capas y mayor número de neuronas en cada capa, es la que peor resultado parece proporcionar sobre el conjunto de test. Estos resultados son incluso peores que los obtenidos para una red con una única capa de neuronas en la entrada. Por otra parte, parece que incorporar capas de dropout parece que obtengamos mejores resultados, siendo la red neuronal que las incorpora la que mejor resultado ha proporcionado sobre el conjunto de test, con una precisión del 78%. En cualquier caso, no se han conseguido mejorar los resultados de la primera actividad (en la que se usaba random forest y también redes neuronales). En ese caso, las precisiones para el conjunto de test oscilaban entre el 78.195% y79.323%.

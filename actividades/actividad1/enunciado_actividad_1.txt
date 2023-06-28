@@ -1,0 +1,7 @@
+Crea un cuaderno .Rmd a partir de titanic.Rmd que realice las siguientes tareas de clasificación automática empleando caret u otra biblioteca análoga:
+
+Aprendizaje de un modelo de clasificación utilizando 'Random Forest' (lo llamaremos rfModel) [ya está hecho, revisar línea 439 y siguientes]
+Aprendizaje de modelo de clasificación utilizando redes neuronales - perceptrón multicapa y parámetros por defecto (lo llamaremos rnaModel)
+Mejora de rnaModel mediante entrenamiento con rejilla de parámetros para los parámetros .size, .decay (rnaModel_mejorado)
+Comparación de rnaModel_mejorado con rfModel en términos de acierto y curva ROC
+Sube a esta actividad el fichero titanic.Rmd con tus modificaciones, indicando al final del mismo en una tabla las métricas obtenidas para todos los modelos en entrenamiento, validación y test.

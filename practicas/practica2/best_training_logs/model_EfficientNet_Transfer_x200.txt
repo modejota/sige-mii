@@ -1,0 +1,44 @@
+New best accuracy 0.20395 > 0.00000 at epoch 1
+Epoch 1 |> Train. loss: 5.2505 | Val. loss: 3.5867
+Epoch 1 |> Train. acc.: 0.0459 | Val. acc.: 0.2039
+New best accuracy 0.42928 > 0.20395 at epoch 2
+New best accuracy 0.55592 > 0.42928 at epoch 3
+Epoch 3 |> Train. loss: 2.0941 | Val. loss: 1.6981
+Epoch 3 |> Train. acc.: 0.4896 | Val. acc.: 0.5559
+New best accuracy 0.63816 > 0.55592 at epoch 4
+New best accuracy 0.70230 > 0.63816 at epoch 5
+Epoch 6 |> Train. loss: 0.9010 | Val. loss: 1.0318
+Epoch 6 |> Train. acc.: 0.7831 | Val. acc.: 0.6957
+New best accuracy 0.73849 > 0.70230 at epoch 7
+New best accuracy 0.75987 > 0.73849 at epoch 9
+Epoch 9 |> Train. loss: 0.5055 | Val. loss: 0.8825
+Epoch 9 |> Train. acc.: 0.8787 | Val. acc.: 0.7599
+New best accuracy 0.77632 > 0.75987 at epoch 12
+Epoch 12 |> Train. loss: 0.2993 | Val. loss: 0.8608
+Epoch 12 |> Train. acc.: 0.9349 | Val. acc.: 0.7763
+New best accuracy 0.78454 > 0.77632 at epoch 15
+Epoch 15 |> Train. loss: 0.2131 | Val. loss: 0.8360
+Epoch 15 |> Train. acc.: 0.9523 | Val. acc.: 0.7845
+Epoch 18 |> Train. loss: 0.1560 | Val. loss: 0.8383
+Epoch 18 |> Train. acc.: 0.9665 | Val. acc.: 0.7648
+New best accuracy 0.78618 > 0.78454 at epoch 19
+New best accuracy 0.78947 > 0.78618 at epoch 21
+Epoch 21 |> Train. loss: 0.1141 | Val. loss: 0.8664
+Epoch 21 |> Train. acc.: 0.9765 | Val. acc.: 0.7895
+New best accuracy 0.79605 > 0.78947 at epoch 22
+Epoch 24 |> Train. loss: 0.0872 | Val. loss: 0.9486
+Epoch 24 |> Train. acc.: 0.9834 | Val. acc.: 0.7648
+New best accuracy 0.79770 > 0.79605 at epoch 26
+Epoch 27 |> Train. loss: 0.0707 | Val. loss: 0.9434
+Epoch 27 |> Train. acc.: 0.9880 | Val. acc.: 0.7812
+Epoch 30 |> Train. loss: 0.0654 | Val. loss: 0.9623
+Epoch 30 |> Train. acc.: 0.9859 | Val. acc.: 0.7796
+
+Test accuracy: 0.784
+
+# 44 min 10 segs
+# Batch_size=16
+# Todas las transformaciones de aumento de datos
+# torch.nn.CrossEntropyLoss(label_smoothing=0.2)
+# torch.optim.AdamW(model_efficient_x20.parameters(), lr=1e-4)
+# torch.optim.lr_scheduler.StepLR(efficient_optimizer, step_size=4, gamma=0.96)

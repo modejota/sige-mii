@@ -1,0 +1,5 @@
+Crea un cuaderno .Rmd a partir de pet-adoption-ensemble.zip para mejorar los resultados del modelo predicción.
+
+Puedes modificar tanto los modelos de predicción individuales como intentar construir un ensemble a partir del ejemplo (incompleto).
+
+Sube el cuaderno a la actividad, indicando al final del mismo en una tabla las métricas obtenidas en validación por tu modelo mejorado frente a las iniciales.

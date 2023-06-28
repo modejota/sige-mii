@@ -1,0 +1,121 @@
+---
+title: "Actividad 4. Ensamble en Keras"
+author: "José Alberto Gómez García"
+date: 16/05/2023
+output: 
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(keras)
+library(tidyverse)
+```
+
+````{r constantes}
+## CONSTANTES
+dataset_dir      <- './data/'
+train_images_dir <- paste0(dataset_dir, 'train_images')
+test_images_dir  <- paste0(dataset_dir, 'test_images')
+```
+
+```{r generadores}
+# https://tensorflow.rstudio.com/reference/keras/image_data_generator.html 
+# https://forums.fast.ai/t/split-data-using-fit-generator/4380/4
+train_images_generator <- image_data_generator(rescale = 1/255, validation_split = 0.2)
+test_images_generator  <- image_data_generator(rescale = 1/255)
+
+# https://tensorflow.rstudio.com/reference/keras/flow_images_from_directory.html
+# https://forums.fast.ai/t/split-data-using-fit-generator/4380/4
+train_generator_flow <- flow_images_from_directory(
+  directory = train_images_dir,
+  generator = train_images_generator,
+  subset = 'training',
+  class_mode = 'categorical',
+  batch_size = 20,
+  target_size = c(64, 64)         # (w x h) --> (64 x 64)
+)
+
+validation_generator_flow <- flow_images_from_directory(
+  directory = train_images_dir,
+  generator = train_images_generator,
+  subset = 'validation',
+  class_mode = 'categorical',
+  batch_size = 20,
+  target_size = c(64, 64)         # (w x h) --> (64 x 64)
+)
+
+# Not using test_generator_flow 
+```
+
+```{r individuales}
+## MODELOS INDIVIDUALES
+source(file = "./adoption-cnn.R")
+source(file = "./adoption-cnn-mine.R")
+```
+
+```{r ensemble}
+
+input_shape <- model_cnn$input_shape %>% unlist()
+input_layer <- layer_input(shape = input_shape)
+
+cnn_input <- input_layer
+cnn_mine_input <- input_layer
+model_list <- c(model_cnn(cnn_input), model_cnn_mine(cnn_mine_input))
+model_output <- layer_average(model_list)
+
+model <- keras_model(
+  inputs = input_layer,
+  outputs = model_output
+)
+
+model %>% compile(
+  optimizer = optimizer_adam(),
+  loss = "categorical_crossentropy",
+  metrics = c("accuracy")
+)
+
+history <- model %>% 
+  fit(
+    train_generator_flow,
+    steps_per_epoch = 10,
+    epochs = 15,
+    validation_data = validation_generator_flow,
+  )
+
+# plot(history)
+```
+
+# Tablas comparativas
+
+## Medidas de precisión 
+
+| Modelo                                     | Entrenamiento | Validación |
+|--------------------------------------------|---------------|------------|
+| CNN propuesta por el profesor (15 épocas)  | 0.7350        | 0.3400     |
+| CNN propuesta por el alumno (10 épocas)    | 0.8000        | 0.8000     |
+| Ensemble de las CNN anteriores (10 épocas) | 1.0000        | 0.2600     |
+
+## Medidas de pérdida
+
+| Modelo                                     | Entrenamiento | Validación |
+|--------------------------------------------|---------------|------------|
+| CNN propuesta por el profesor (15 épocas)  | 0.6948        | 1.8519     |
+| CNN propuesta por el alumno (10 épocas)    | 0.5077        | 0.5045     |
+| Ensemble de las CNN anteriores (10 épocas) | 0.0013        | 4.5072     |
+
+# Discusión
+
+Para este ejercicio se ha tomado la red neuronal (fichero adoption-cnn.R) propuesta por el profesor y se ha modificado para que en lugar de tener 10 épocas de entrenamiento tenga 15. Se probó a usar un número mayor (20 y 25), pero a partir de 15 épocas parecía producrise sobreajuste al conjunto de entrenamiento. Cabe mencionar que los resultados obtenidos a partir de la décima época me han variado en función de la ejecución de una manera significativa, especialmente la precisión en validación (que oscilaba entre el 24% y 36%)-
+
+Adicionalmente, se ha propuesto una red neuronal propia en la que se usan menos capas convolucionales, pero se utilizan capas de "dropout" y capas totalmente conectadas con una cantidad diferente de neuronas. Esta segunda red neuronal produce los mismos resultados a partir de la 3º ejecución independientemente de la ejecución, por lo que nos limitamos a emplear 10 épocas "por si acaso".
+
+La precisión obtenida por el modelo propuesto es del 80% tanto en entrenamiento como en validación, siendo la pérdida cercana a 0.5. Estos valores son mejores que los obtenidos por la red neuronal que venía adjunta (preciones del 39.5% y 18% para entrenamiento y validacion en las 10 épocas preestablecidas, precisiones del 73.5% y 34% en 15 épocas).
+
+Posteriormente, se propuso armar un "ensemble" de ambas redes nueronales. Este nuevo modelo parece ajustarse perfectamente al conjunto de entrenamiento, al obtener una precisión del 100% tras 5 épocas de entrenamiento (con una pérdida de apenas 0.001). Sin embargo, cuando comprobamos los resultados en validación la precisión baja radicalmente al rango del 24-28% (resultados en sintonía con la red propuesta por el profesor) en función de la ejecución. La pérdida es mucho mayor que en cualquiera de los modelos anteriores.
+
+Por lo tanto, parece prudente utilizar la red neuronal propuesta por el alumno dado que es la que mejores resultados proporciona para el conjunto de validación empleado.

@@ -1,0 +1,10 @@
+Crea un cuaderno .Rmd a partir de titanic.Rmd que realice las siguientes tareas de clasificación automática empleando keras para R:
+
+Aprendizaje de un modelo de clasificación utilizando redes neuronales 
+Cálculo de métricas de acierto y curva ROC
+Sube a esta actividad el fichero titanic.Rmd con tus modificaciones.
+
+Información adicional:
+
+Instalación de keras (https://tensorflow.rstudio.com/install/)
+Ejemplo (https://www.r-bloggers.com/2020/05/deep-learning-model-for-titanic-data/)

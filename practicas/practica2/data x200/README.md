@@ -1,0 +1,2 @@
+Coloque aquí la estructura de directorios correspondiente al conjunto de datos con 200 clases.
+Básicamente es descargarse el dataset de la web que se indica en la memoria y descomprimirlo en esta carpeta.

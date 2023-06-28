@@ -1,0 +1,50 @@
+New best accuracy 0.00329 > 0.00000 at epoch 1
+Epoch 1 |> Train. loss: 5.4420 | Val. loss: 5.4275
+Epoch 1 |> Train. acc.: 0.0043 | Val. acc.: 0.0033
+New best accuracy 0.00658 > 0.00329 at epoch 2
+New best accuracy 0.01316 > 0.00658 at epoch 3
+Epoch 3 |> Train. loss: 5.1817 | Val. loss: 5.1621
+Epoch 3 |> Train. acc.: 0.0081 | Val. acc.: 0.0132
+New best accuracy 0.01480 > 0.01316 at epoch 5
+New best accuracy 0.02961 > 0.01480 at epoch 6
+Epoch 6 |> Train. loss: 4.9155 | Val. loss: 4.9040
+Epoch 6 |> Train. acc.: 0.0251 | Val. acc.: 0.0296
+New best accuracy 0.03289 > 0.02961 at epoch 8
+New best accuracy 0.05428 > 0.03289 at epoch 9
+Epoch 9 |> Train. loss: 4.6491 | Val. loss: 4.6675
+Epoch 9 |> Train. acc.: 0.0418 | Val. acc.: 0.0543
+New best accuracy 0.05921 > 0.05428 at epoch 12
+Epoch 12 |> Train. loss: 4.3768 | Val. loss: 4.6809
+Epoch 12 |> Train. acc.: 0.0673 | Val. acc.: 0.0592
+New best accuracy 0.06579 > 0.05921 at epoch 13
+New best accuracy 0.10526 > 0.06579 at epoch 14
+Epoch 15 |> Train. loss: 4.0963 | Val. loss: 4.4616
+Epoch 15 |> Train. acc.: 0.0893 | Val. acc.: 0.0872
+New best accuracy 0.10691 > 0.10526 at epoch 17
+New best accuracy 0.12829 > 0.10691 at epoch 18
+Epoch 18 |> Train. loss: 3.8146 | Val. loss: 3.9214
+Epoch 18 |> Train. acc.: 0.1276 | Val. acc.: 0.1283
+New best accuracy 0.13487 > 0.12829 at epoch 19
+New best accuracy 0.15789 > 0.13487 at epoch 20
+Epoch 21 |> Train. loss: 3.5450 | Val. loss: 4.1231
+Epoch 21 |> Train. acc.: 0.1751 | Val. acc.: 0.1349
+New best accuracy 0.16941 > 0.15789 at epoch 22
+Epoch 24 |> Train. loss: 3.2868 | Val. loss: 3.8352
+Epoch 24 |> Train. acc.: 0.2104 | Val. acc.: 0.1546
+New best accuracy 0.17599 > 0.16941 at epoch 25
+New best accuracy 0.19901 > 0.17599 at epoch 26
+Epoch 27 |> Train. loss: 3.0672 | Val. loss: 3.5461
+Epoch 27 |> Train. acc.: 0.2437 | Val. acc.: 0.1908
+New best accuracy 0.21217 > 0.19901 at epoch 28
+New best accuracy 0.22697 > 0.21217 at epoch 29
+New best accuracy 0.23355 > 0.22697 at epoch 30
+Epoch 30 |> Train. loss: 2.7911 | Val. loss: 3.4723
+Epoch 30 |> Train. acc.: 0.2951 | Val. acc.: 0.2336
+
+Test accuracy: 0.230
+
+# 69 min 4 segs. 
+# Batch_size=16
+# Todas las transformaciones de aumento de datos
+# torch.optim.Adam(model_x20.parameters(), lr=1e-3)
+# torch.optim.lr_scheduler.ExponentialLR(optimizer_x20, gamma=0.95)

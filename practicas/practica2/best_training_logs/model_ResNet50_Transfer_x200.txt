@@ -1,0 +1,39 @@
+New best accuracy 0.42434 > 0.00000 at epoch 1
+Epoch 1 |> Train. loss: 4.3599 | Val. loss: 2.3051
+Epoch 1 |> Train. acc.: 0.1392 | Val. acc.: 0.4243
+New best accuracy 0.63322 > 0.42434 at epoch 2
+New best accuracy 0.69737 > 0.63322 at epoch 3
+Epoch 3 |> Train. loss: 1.0448 | Val. loss: 1.0309
+Epoch 3 |> Train. acc.: 0.7352 | Val. acc.: 0.6974
+New best accuracy 0.73849 > 0.69737 at epoch 4
+New best accuracy 0.75822 > 0.73849 at epoch 6
+Epoch 6 |> Train. loss: 0.3863 | Val. loss: 0.8631
+Epoch 6 |> Train. acc.: 0.9062 | Val. acc.: 0.7582
+New best accuracy 0.77796 > 0.75822 at epoch 7
+New best accuracy 0.78783 > 0.77796 at epoch 8
+Epoch 9 |> Train. loss: 0.1765 | Val. loss: 0.8893
+Epoch 9 |> Train. acc.: 0.9626 | Val. acc.: 0.7845
+New best accuracy 0.81414 > 0.78783 at epoch 10
+Epoch 12 |> Train. loss: 0.0913 | Val. loss: 0.8870
+Epoch 12 |> Train. acc.: 0.9841 | Val. acc.: 0.7812
+Epoch 15 |> Train. loss: 0.0769 | Val. loss: 0.9100
+Epoch 15 |> Train. acc.: 0.9867 | Val. acc.: 0.8043
+Epoch 18 |> Train. loss: 0.0448 | Val. loss: 0.9135
+Epoch 18 |> Train. acc.: 0.9928 | Val. acc.: 0.7944
+Epoch 21 |> Train. loss: 0.0392 | Val. loss: 0.9378
+Epoch 21 |> Train. acc.: 0.9943 | Val. acc.: 0.7845
+Epoch 24 |> Train. loss: 0.0270 | Val. loss: 0.9623
+Epoch 24 |> Train. acc.: 0.9965 | Val. acc.: 0.8010
+New best accuracy 0.81579 > 0.81414 at epoch 26
+Epoch 27 |> Train. loss: 0.0218 | Val. loss: 0.9168
+Epoch 27 |> Train. acc.: 0.9954 | Val. acc.: 0.7993
+Epoch 30 |> Train. loss: 0.0162 | Val. loss: 0.9863
+Epoch 30 |> Train. acc.: 0.9989 | Val. acc.: 0.8010
+
+Test accuracy: 0.821
+
+# 64 min 40 segs. 
+# Batch_size=16
+# Todas las transformaciones de aumento de datos
+# torch.optim.Adam(model_pretrained.parameters(), lr=1e-4)
+# torch.optim.lr_scheduler.ExponentialLR(new_optimizer, gamma=0.95)

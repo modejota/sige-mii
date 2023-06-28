@@ -1,0 +1,43 @@
+New best accuracy 0.20724 > 0.00000 at epoch 1
+Epoch 1 |> Train. loss: 4.9409 | Val. loss: 3.2900
+Epoch 1 |> Train. acc.: 0.0547 | Val. acc.: 0.2072
+New best accuracy 0.49178 > 0.20724 at epoch 2
+New best accuracy 0.61842 > 0.49178 at epoch 3
+Epoch 3 |> Train. loss: 1.6830 | Val. loss: 1.5003
+Epoch 3 |> Train. acc.: 0.5473 | Val. acc.: 0.6184
+New best accuracy 0.65954 > 0.61842 at epoch 4
+New best accuracy 0.66447 > 0.65954 at epoch 5
+New best accuracy 0.68586 > 0.66447 at epoch 6
+Epoch 6 |> Train. loss: 0.7289 | Val. loss: 1.1488
+Epoch 6 |> Train. acc.: 0.7883 | Val. acc.: 0.6859
+New best accuracy 0.71382 > 0.68586 at epoch 7
+New best accuracy 0.72039 > 0.71382 at epoch 8
+Epoch 9 |> Train. loss: 0.4005 | Val. loss: 1.1006
+Epoch 9 |> Train. acc.: 0.8780 | Val. acc.: 0.7188
+New best accuracy 0.72368 > 0.72039 at epoch 12
+Epoch 12 |> Train. loss: 0.2379 | Val. loss: 1.1703
+Epoch 12 |> Train. acc.: 0.9294 | Val. acc.: 0.7237
+New best accuracy 0.72697 > 0.72368 at epoch 14
+Epoch 15 |> Train. loss: 0.1702 | Val. loss: 1.1510
+Epoch 15 |> Train. acc.: 0.9525 | Val. acc.: 0.7089
+New best accuracy 0.74178 > 0.72697 at epoch 16
+New best accuracy 0.75164 > 0.74178 at epoch 17
+Epoch 18 |> Train. loss: 0.1143 | Val. loss: 1.1451
+Epoch 18 |> Train. acc.: 0.9688 | Val. acc.: 0.7286
+Epoch 21 |> Train. loss: 0.0874 | Val. loss: 1.1605
+Epoch 21 |> Train. acc.: 0.9756 | Val. acc.: 0.7451
+Epoch 24 |> Train. loss: 0.0656 | Val. loss: 1.1858
+Epoch 24 |> Train. acc.: 0.9854 | Val. acc.: 0.7385
+Epoch 27 |> Train. loss: 0.0617 | Val. loss: 1.2660
+Epoch 27 |> Train. acc.: 0.9845 | Val. acc.: 0.7434
+New best accuracy 0.75822 > 0.75164 at epoch 30
+Epoch 30 |> Train. loss: 0.0576 | Val. loss: 1.2652
+Epoch 30 |> Train. acc.: 0.9887 | Val. acc.: 0.7582
+
+Test accuracy: 0.748
+
+# 27 min 55 segs. 
+# Batch_size=16
+# Todas las transformaciones de aumento de datos
+# torch.optim.Adam(model_mobilenet_x20.parameters(), lr=1e-4)
+# torch.optim.lr_scheduler.ExponentialLR(mobilenet_optimizer, gamma=0.90)

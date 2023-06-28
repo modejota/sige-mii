@@ -1,0 +1,12 @@
+Revisa el cuaderno de Google Colaboratory que entrena a un agente para jugar a Breakout.
+
+Modifica el cuaderno para resolver el juego del Pong, teniendo en cuenta que:
+
+Las imágenes de entrada del Pong tienen el mismo tamaño que las de Breakout.
+El nombre del entorno Pong es PongNoFrameskip-v4.
+El número de acciones posibles en Pong es 6, en lugar de las 4 de Breakout.
+Queremos añadir una capa convolutiva Conv2D llamada layer0 adicional a la red DQN con 16 filtros, tamaño de kernel 8, strides igual a 2 y activación "relu".
+Consideramos Pong solucionado cuando la recompensa acumulada en los últimos 100 episodios (running_reward) es mayor que -15.  
+Sube el cuaderno (fichero .ipynb) resultante. No es necesario alcanzar una solución; probablemente, Google Colab cerrará la sesión antes de finalizar el entrenamiento.
+
+- No realizado

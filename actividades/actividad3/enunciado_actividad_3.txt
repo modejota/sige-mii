@@ -1,0 +1,13 @@
+Crea un cuaderno .Rmd a partir de titanic-dl.Rmd para mejorar los resultados del modelo predicción:
+
+Puedes modificar, entre otros:
+
+Arquitectura de la red
+Algoritmos de optimización 
+Hiperparámetros (tasa de aprendizaje)
+Otros aspectos: número de epochs, tamaño del batch, etc.
+
+Sube el cuaderno a la actividad, indicando al final del mismo en una tabla las métricas obtenidas en validación por tu modelo mejorado frente a las iniciales. ¿Se consigue una mejora clara?
+
+- Se adjunta el "código base" proporciondado por el profesor.
+- En su momento me adelanté e hice en la actividad 2 el trabajo de las actividades 2 y 3. Consultad dicho fichero

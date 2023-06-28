@@ -1,0 +1,40 @@
+New best accuracy 0.86458 > 0.00000 at epoch 1
+Epoch 1 |> Train. loss: 0.0041 | Val. loss: 0.5515
+Epoch 1 |> Train. acc.: 0.9982 | Val. acc.: 0.8646
+Epoch 3 |> Train. loss: 0.0015 | Val. loss: 0.5050
+Epoch 3 |> Train. acc.: 1.0000 | Val. acc.: 0.8594
+Epoch 6 |> Train. loss: 0.0016 | Val. loss: 0.5593
+Epoch 6 |> Train. acc.: 1.0000 | Val. acc.: 0.8542
+Epoch 9 |> Train. loss: 0.0012 | Val. loss: 0.4986
+Epoch 9 |> Train. acc.: 1.0000 | Val. acc.: 0.8542
+New best accuracy 0.86979 > 0.86458 at epoch 10
+Epoch 12 |> Train. loss: 0.0018 | Val. loss: 0.5292
+Epoch 12 |> Train. acc.: 1.0000 | Val. acc.: 0.8490
+Epoch 15 |> Train. loss: 0.0013 | Val. loss: 0.4996
+Epoch 15 |> Train. acc.: 1.0000 | Val. acc.: 0.8594
+Epoch 18 |> Train. loss: 0.0036 | Val. loss: 0.5313
+Epoch 18 |> Train. acc.: 0.9982 | Val. acc.: 0.8490
+Epoch 21 |> Train. loss: 0.0007 | Val. loss: 0.5429
+Epoch 21 |> Train. acc.: 1.0000 | Val. acc.: 0.8490
+Epoch 24 |> Train. loss: 0.0007 | Val. loss: 0.5307
+Epoch 24 |> Train. acc.: 1.0000 | Val. acc.: 0.8542
+Epoch 27 |> Train. loss: 0.0007 | Val. loss: 0.5559
+Epoch 27 |> Train. acc.: 1.0000 | Val. acc.: 0.8542
+Epoch 30 |> Train. loss: 0.0004 | Val. loss: 0.5903
+Epoch 30 |> Train. acc.: 1.0000 | Val. acc.: 0.8490
+Epoch 33 |> Train. loss: 0.0019 | Val. loss: 0.5297
+Epoch 33 |> Train. acc.: 1.0000 | Val. acc.: 0.8542
+Epoch 36 |> Train. loss: 0.0009 | Val. loss: 0.5400
+Epoch 36 |> Train. acc.: 1.0000 | Val. acc.: 0.8490
+Epoch 39 |> Train. loss: 0.0034 | Val. loss: 0.5380
+Epoch 39 |> Train. acc.: 0.9975 | Val. acc.: 0.8490
+Epoch 40 |> Train. loss: 0.0008 | Val. loss: 0.5486
+Epoch 40 |> Train. acc.: 1.0000 | Val. acc.: 0.8438
+
+Test accuracy: 0.895
+
+# 4 min 20 segs. 
+# Batch_size=16
+# Todas las transformaciones de aumento de datos
+# torch.optim.Adam(model_mobilenet_x20.parameters(), lr=1e-3)
+# torch.optim.lr_scheduler.ExponentialLR(mobilenet_optimizer, gamma=0.95)

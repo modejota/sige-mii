@@ -1,0 +1,41 @@
+New best accuracy 0.58333 > 0.00000 at epoch 1
+Epoch 1 |> Train. loss: 2.4887 | Val. loss: 1.3609
+Epoch 1 |> Train. acc.: 0.4050 | Val. acc.: 0.5833
+New best accuracy 0.71875 > 0.58333 at epoch 2
+New best accuracy 0.74479 > 0.71875 at epoch 3
+Epoch 3 |> Train. loss: 0.5972 | Val. loss: 0.8169
+Epoch 3 |> Train. acc.: 0.8162 | Val. acc.: 0.7448
+New best accuracy 0.80208 > 0.74479 at epoch 4
+New best accuracy 0.82812 > 0.80208 at epoch 5
+New best accuracy 0.88021 > 0.82812 at epoch 6
+Epoch 6 |> Train. loss: 0.1513 | Val. loss: 0.2698
+Epoch 6 |> Train. acc.: 0.9577 | Val. acc.: 0.8802
+Epoch 9 |> Train. loss: 0.1655 | Val. loss: 0.4158
+Epoch 9 |> Train. acc.: 0.9485 | Val. acc.: 0.8646
+New best accuracy 0.89583 > 0.88021 at epoch 10
+Epoch 12 |> Train. loss: 0.0758 | Val. loss: 0.6633
+Epoch 12 |> Train. acc.: 0.9743 | Val. acc.: 0.8958
+New best accuracy 0.91146 > 0.89583 at epoch 13
+Epoch 15 |> Train. loss: 0.1215 | Val. loss: 0.7320
+Epoch 15 |> Train. acc.: 0.9632 | Val. acc.: 0.8177
+New best accuracy 0.92708 > 0.91146 at epoch 17
+New best accuracy 0.94792 > 0.92708 at epoch 18
+Epoch 18 |> Train. loss: 0.0725 | Val. loss: 0.2610
+Epoch 18 |> Train. acc.: 0.9755 | Val. acc.: 0.9479
+Epoch 21 |> Train. loss: 0.0617 | Val. loss: 0.3364
+Epoch 21 |> Train. acc.: 0.9816 | Val. acc.: 0.8958
+Epoch 24 |> Train. loss: 0.0822 | Val. loss: 0.4943
+Epoch 24 |> Train. acc.: 0.9755 | Val. acc.: 0.8646
+Epoch 27 |> Train. loss: 0.0708 | Val. loss: 0.5427
+Epoch 27 |> Train. acc.: 0.9822 | Val. acc.: 0.8698
+Epoch 30 |> Train. loss: 0.0389 | Val. loss: 0.4874
+Epoch 30 |> Train. acc.: 0.9871 | Val. acc.: 0.9167
+
+Test accuracy: 0.883
+
+# 4 min 57 segs
+# Batch_size=16
+# Todas las transformaciones de aumento de datos
+# torch.nn.CrossEntropyLoss(label_smoothing=0.2)
+# torch.optim.AdamW(model_efficient_x20.parameters(), lr=1e-3)
+# torch.optim.lr_scheduler.StepLR(efficient_optimizer, step_size=4, gamma=0.96)

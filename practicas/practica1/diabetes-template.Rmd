@@ -1,0 +1,138 @@
+---
+title: "Exploración de datos del problema Diabetes"
+author: "Juan Gómez Romero"
+output:
+    html_document: 
+      toc: yes
+      number_sections: yes
+      code_folding: show
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+library(knitr)
+library(tidyverse)
+library(funModeling)
+library(DataExplorer)
+```
+
+# Problema
+
+[Descripción del problema](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset).
+
+# Análisis exploratorio
+
+## Lectura de datos
+
+Datos desde .csv:
+
+```{r leer-datos}
+training_data_raw <- read_csv2("./data/diabetes.csv", na = "-999")
+
+training_data <- training_data_raw %>%
+  mutate(Label = ifelse(Diabetes_binary == 0, "No", "Yes")) %>%
+  select(-Diabetes_binary)
+```
+
+## Observar distribución de los valores
+
+Visión general del conjunto de datos:
+
+```{r resumen}
+# glimpse(training_data)
+summary(training_data)
+```
+
+Estado del conjunto de datos:
+
+```{r status}
+status <- df_status(training_data)
+```
+
+## Analizar clases
+
+Podemos ver cuántos valores tenemos de cada clase:
+
+```{r tabla}
+table(training_data$Label)
+```
+
+Y crear un histograma:
+
+```{r clases, warning=FALSE}
+ggplot(training_data) +
+  geom_histogram(aes(x = Label, fill = Label), stat = "count") +
+  scale_fill_discrete(name ="Clase", labels=c("No diabetes", "Diabetes")) +
+  labs(x = "", y = "") +
+  theme(axis.text.x=element_blank())
+```
+
+## Analizar clases por variable
+
+Podemos analizar cómo están distribuidos las clases para los valores de una variable (*estratificación*):
+
+```{r clases-var}
+ggplot(training_data) +
+  geom_histogram(aes(x = as.factor(HighChol), fill = Label), stat = "count") +
+  scale_fill_discrete(name ="Clase", labels=c("No diabetes", "Diabetes")) +
+  labs(x = "HighChol", y = "") 
+```
+
+Incluso considerar una pseudo-distribución de probabilidad:
+
+```{r densidad}
+ggplot(training_data) +
+  geom_density(bw = 0.5, aes(x = Age, fill = Label, color = Label), alpha = 0.3) +
+  labs(x = "Age", y = "") +
+  scale_fill_discrete(name ="Clase", labels=c("No diabetes", "Diabetes")) +
+  scale_color_discrete(name ="Clase", labels=c("No diabetes", "Diabetes"))
+```
+
+Utilizando [Shiny](https://shiny.rstudio.com/), se puede extender para todas las variables (sin `NA`s).
+
+```{r densidad-interactiva, echo=FALSE}
+cols <- training_data %>%
+  select_if(~ !any(is.na(.))) %>%
+  select(-Label) %>%
+  names() %>%
+  sort()
+
+inputPanel(
+  selectInput("x_variable", label = "Variable x:",
+              choices = cols, 
+              selected = cols[1])
+)
+
+renderPlot({
+  ggplot(training_data) + 
+    geom_density(aes_string(x = input$x_variable, fill = "Label", color = "Label"), alpha = 0.3) +
+    labs(x = "", y = "") +
+    scale_fill_discrete(name ="Clase", labels=c("No diabetes", "Diabetes"))
+    scale_color_discrete(name ="Clase", labels=c("No diabetes", "Diabetes"))
+})
+
+renderUI({
+  HTML(paste0(
+    "<p>Correlacion con objetivo de clasificación: <b>",
+    cor(training_data[input$x_variable], as.numeric(factor(training_data$Label))),
+    "</b></p>"
+  ))
+})
+```
+
+# Análisis exploratorio con DataExplorer
+
+[DataExplorer](https://boxuancui.github.io/DataExplorer/) permite crear un informe de un conjunto de datos incluyendo varios gráficos exploratorios.
+
+```{r generar-informe, include=FALSE}
+create_report(training_data)
+```
+
+También es posible crear los gráficos por separado:
+
+```{r}
+plot_intro(training_data)
+```
+
+Existen otros paquetes que realizan tareas similares. Aquí puedes ver un resumen: [The Landscape of R Packages for Automated Exploratory Data Analysis](https://arxiv.org/pdf/1904.02101.pdf).

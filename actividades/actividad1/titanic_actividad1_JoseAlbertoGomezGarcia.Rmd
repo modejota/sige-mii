@@ -1,0 +1,262 @@
+---
+title: "Actividad 1. Clasificación automática empleando caret y el dataset del Titanic"
+author: "José Alberto Gómez García"
+date: 08/03/2023
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    df_print: paged
+---
+
+Preprocesamiento de datos con el dataset [titanic](https://www.kaggle.com/c/titanic/).
+
+> El hundimiento del Titanic es una de las tragedias marítimas más conocidas de la historia. El 15 de abril de 1912, durante su viaje inaugural, el Titanic se hundió después de chocar contra un iceberg. En el accidente murieron 1502 personas de las 2224 que habían embarcado, incluyendo pasajeros y tripulación. Una de las razones por las que no se encontraron más supervivientes fue la falta de espacio en los barcos salvavidas. Así, aunque la suerte sin duda sonrió a los supervivientes, también resultaron más favorecidos algunos grupos de personas, como las mujeres, los niños y los pasajeros de la clase superior.
+
+**En este problema analizaremos qué tipos de personas tuvieron más probabilidades de sobrevivir. Para ello, aplicaremos técnicas de aprendizaje automático que nos permitirán predecir qué pasajeros sobrevivieron al hundimiento.**
+
+En primer lugar, nos centraremos en el pre-procesamiento de los datos utilizando [tidyverse](https://www.tidyverse.org), una colección de paquetes de R para Ciencia de Datos. En el libro [*R for Data Science*](http://r4ds.had.co.nz) podemos encontrar documentación detallada sobre [tidyverse](https://www.tidyverse.org). A continuación pasaremos a estudiar la creación de modelos de clasificación con [<tt>caret</tt>](http://topepo.github.io/caret/). En el libro [*Applied Predictive Modeling*](https://link.springer.com/book/10.1007%2F978-1-4614-6849-3) (gratuito desde RedUGR) podemos encontrar documentación detallada sobre [<tt>caret</tt>](http://topepo.github.io/caret/).
+
+# Lectura e inspección de datos
+
+## Carga de datos
+
+Comenzaremos utilizando el fichero [*train.csv*](https://www.kaggle.com/c/titanic/data) de Kaggle, donde encontramos los datos de 891 pasajeros y que utilizaremos para crear nuestro modelo de predicción.
+
+Para lectura de datos, utilizaremos alguna de las variantes de la función [<tt>read</tt>](http://r4ds.had.co.nz/data-import.html). A continuación, podemos inspeccionar el contenido de la tabla de datos, que se almacena en formato [<tt>tibble</tt>](http://r4ds.had.co.nz/tibbles.html).
+
+```{r cargar-tidyverse}
+library(tidyverse)
+data_raw <- read_csv('train.csv')
+data_raw # str(data_raw) , glimpse(data_raw)
+```
+
+## Estado de los datos
+
+Podemos identificar los valores perdidos de la tabla utilizando <tt>df_status</tt>, del paquete [<tt>funModeling</tt>](https://livebook.datascienceheroes.com/exploratory-data-analysis.html#dataset-health-status).
+
+```{r}
+library(funModeling)
+df_status(data_raw)
+```
+
+Algunas observaciones interesantes:
+
+-   Los valores de *PassengerId* y *Name* son únicos
+-   Existen dos valores diferentes para *Survived*, que es nuestro objetivo de clasificación
+-   No sobrevivieron 549 pasajeros (61.62%)
+-   Aparecen numerosos valores perdidos (*na*) en las variables *Age* y *Cabin*
+
+Parte de estas situaciones se pueden identificar y procesar directamente manipulando la tabla <tt>df_status</tt>:
+
+```{r}
+status <- df_status(data_raw)
+
+## columnas con NAs
+na_cols <- status %>%
+  filter(p_na > 70) %>%
+  select(variable)
+## columnas con valores diferentes
+dif_cols <- status %>%
+  filter(unique > 0.8 * nrow(data_raw)) %>%
+  select(variable)
+
+## eliminar columnas
+remove_cols <- bind_rows(
+  list(na_cols, dif_cols)
+)
+data_reduced <- data_raw %>%
+  select(-one_of(remove_cols$variable))
+```
+
+## Preprocesamiento
+
+Antes de realizar la predicción automática, se realizan varias tareas sencillas de preprocesamiento:
+
+-   Codificación de variables: *Survived* = {'Yes', 'No'}, *Pclass* = <tt>factor</tt>
+-   Discretización de variables numéricas: *Fare_Interval* = {'More.than.30', 'Between.20.30', 'Between.10.20', 'Less.than.10'}
+-   Selección de variables: solo se consideran para la predicción: *Survived* (variable objetivo), *Pclass*, *Sex*, *Fare_Interval*
+
+```{r}
+library(caret)
+data <-
+  data_raw %>%
+  mutate(Survived = as.factor(ifelse(Survived == 1, 'Yes', 'No'))) %>%
+  mutate(Pclass = as.factor(Pclass)) %>%
+  mutate(Fare_Interval = as.factor(
+    case_when(
+      Fare >= 30 ~ 'More.than.30',
+      Fare >= 20 & Fare < 30 ~ 'Between.20.30',
+      Fare < 20 & Fare >= 10 ~ 'Between.10.20',
+      Fare < 10 ~ 'Less.than.10'))) %>%
+  select(Survived, Pclass, Sex, Fare_Interval)
+```
+
+## Conjuntos de entrenamiento y validación
+
+A continuación, se crean los conjuntos de entrenamiento y validación utilizando [<tt>createDataPartition</tt>](https://rdrr.io/rforge/caret/man/createDataPartition.html). En este caso utilizaremos 70% para entrenamiento (30% para validación) con selección aleatoria. El resultado de [<tt>createDataPartition</tt>](https://rdrr.io/rforge/caret/man/createDataPartition.html) es un vector (<tt>list = FALSE</tt>) con los números de fila que se han seleccionado para el entrenamiento.
+
+```{r}
+set.seed(0)
+trainIndex <- createDataPartition(data$Survived, p = .7, list = FALSE)
+train <- data[trainIndex, ]
+val   <- data[-trainIndex, ]
+```
+
+# Ejercicios propuestos
+
+## 1. Aprendizaje mediante Random Forest
+
+```{r}
+library(pROC)
+rpartCtrl <- trainControl(classProbs = TRUE, summaryFunction = twoClassSummary)
+
+# Entrenar sin validación cruzada
+modelo_rf <- train(Survived ~ ., data = train, method = "rf", metric = "ROC", trControl = rpartCtrl)
+
+# Conseguir predicciones para conjunto de validación
+predictionValidationProb <- predict(modelo_rf, val, type = "prob")
+predictionValidation <- predict(modelo_rf, val)
+
+# AUC mediante ROC. Se dibuja la gráfica
+auc_rf <- roc(val$Survived, predictionValidationProb[["Yes"]], levels = unique(val[["Survived"]]))
+roc_validation <- plot.roc(auc_rf, ylim=c(0,1), type = "S" , print.thres = T, main=paste('Validation AUC:', round(auc_rf$auc[[1]], 2)))
+
+# Conseguir la precisión
+acc_rf <- confusionMatrix(predictionValidation, val$Survived)
+
+# Imprimir resultados validacion
+print("Validación random forest")
+sprintf("El valor de accuracy es %.5f", acc_rf$overall["Accuracy"])
+sprintf("El valor de AUC es %.5f", auc_rf$auc[[1]])
+
+# Conseguir predicciones para conjunto de entrenamiento
+predictionTrainProb <- predict(modelo_rf, train, type = "prob")
+predictionTrain <- predict(modelo_rf, train)
+
+# Conseguir métricas para el entrenamiento (por dar algo más de info)
+
+auc_rf_train <- roc(train$Survived, predictionTrainProb[["Yes"]], levels = unique(train[["Survived"]]))
+acc_rf_train <- confusionMatrix(predictionTrain, train$Survived)
+
+# Imprimir resultados entrenamiento
+print("Entrenamiento random forest")
+sprintf("El valor de accuracy es %.5f", acc_rf_train$overall["Accuracy"])
+sprintf("El valor de AUC es %.5f", auc_rf_train$auc[[1]])
+```
+
+## 2. Aprendizaje de modelo de clasificación utilizando redes neuronales - perceptrón multicapa y parámetros por defecto
+
+```{r}
+# Entrenar modelo
+modelo_rna <- train(Survived ~ .,
+                    data = train,
+                    method = "nnet",
+                    metric = "ROC",
+                    trControl = rpartCtrl)
+
+# Predicciones para conjunto de validación
+predictionValidationProb <- predict(modelo_rna, val, type = "prob")
+predictionValidation <- predict(modelo_rna, val)
+
+# AUC mediante ROC. Se dibuja la gráfica
+auc_rna <- roc(val$Survived, predictionValidationProb[["Yes"]], levels = unique(val[["Survived"]]))
+roc_validation_rna <- plot.roc(auc_rna, ylim=c(0,1), type = "S" , print.thres = T, main=paste('Validation AUC:', round(auc_rna$auc[[1]], 2)))
+
+# Conseguir la precisión
+acc_rna <- confusionMatrix(predictionValidation, val$Survived)
+
+# Imprimir resultados validación
+print("Validación red neuronal")
+sprintf("El valor de accuracy es %.5f", acc_rna$overall["Accuracy"])
+sprintf("El valor de AUC es %.5f", auc_rna$auc[[1]])
+
+# Predicciones para conjunto de entrenamiento
+predictionTrainProb <- predict(modelo_rna, train, type = "prob")
+predictionTrain <- predict(modelo_rna, train)
+
+# Conseguir métricas (por dar algo más de info)
+auc_rna_train <- roc(train$Survived, predictionTrainProb[["Yes"]], levels = unique(train[["Survived"]]))
+acc_rna_train <- confusionMatrix(predictionTrain, train$Survived)
+
+# Imprimir resultados entrenamiento
+print("Entrenamiento red neuronal")
+sprintf("El valor de accuracy es %.5f", acc_rna_train$overall["Accuracy"])
+sprintf("El valor de AUC es %.5f", auc_rna_train$auc[[1]])
+
+```
+
+## 3. Mejora del modelo de redes neuronales anterior mediante entrenamiento con rejilla de parámetros para los parámetros .size, .decay
+
+```{r}
+# Definir rejilla de parámetros.
+# v1 = size from 1 to 10; v2 = size from 1 to 20.
+# No he dejado ambas por no duplicar código.
+paramGrid <- expand.grid(size = seq(from = 1, to = 10, by = 1),
+                        decay = seq(from = 0.1, to = 0.5, by = 0.1))
+
+# Entrenar modelo
+modelo_rna_mejorado <- train(Survived ~ .,
+                             data = train,
+                             method = "nnet",
+                             metric = "ROC",
+                             trControl = rpartCtrl,
+                             tuneGrid = paramGrid)
+
+# Conseguir predicciones para conjunto de validación
+predictionValidationProb <- predict(modelo_rna_mejorado, val, type = "prob")
+predictionValidation <- predict(modelo_rna_mejorado, val)
+
+# AUC mediante ROC. Se dibuja la gráfica
+auc_rna_mejorado <- roc(val$Survived, predictionValidationProb[["Yes"]], levels = unique(val[["Survived"]]))
+roc_validation_rna <- plot.roc(auc_rna_mejorado, ylim=c(0,1), type = "S" , print.thres = T, main=paste('Validation AUC:', round(auc_rna_mejorado$auc[[1]], 2)))
+
+# Conseguir la precisión
+acc_rna_mejorado <- confusionMatrix(predictionValidation, val$Survived)
+
+# Imprimir resultados validación
+print("Validación red neuronal con rejilla de parámetros")
+sprintf("El valor de accuracy es %.5f", acc_rna_mejorado$overall["Accuracy"])
+sprintf("El valor de AUC es %.5f", auc_rna_mejorado$auc[[1]])
+
+# Predicciones para conjunto de entrenamiento
+predictionTrainProb <- predict(modelo_rna_mejorado, train, type = "prob")
+predictionTrain <- predict(modelo_rna_mejorado, train)
+
+# Conseguir métricas (por dar algo más de info)
+auc_rna_mejorado_train <- roc(train$Survived, predictionTrainProb[["Yes"]], levels = unique(train[["Survived"]]))
+acc_rna_mejorado_train <- confusionMatrix(predictionTrain, train$Survived)
+
+# Imprimir resultados entrenamiento
+print("Entrenamiento red neuronal con rejilla de parámetros")
+sprintf("El valor de accuracy es %.5f", acc_rna_mejorado_train$overall["Accuracy"])
+sprintf("El valor de AUC es %.5f", auc_rna_mejorado_train$auc[[1]])
+```
+
+## 4. Comparación de los modelos en términos de acierto y curva ROC
+
+### Entrenamiento
+
+| Modelo                                  | Precisión | AUC     |
+|-----------------------------------------|-----------|---------|
+| Random Forest                           |  0.81440  | 0.85996 |
+| Red neuronal (parametros por defecto)   |  0.81440  | 0.86681 |
+| Red neuronal (rejilla de parámetros) v1 |  0.80000  | 0.85627 |
+| Red neuronal (rejilla de parámetros) v2 |  0.81440  | 0.86681 |
+
+### Validacion
+
+| Modelo                                  | Precisión | AUC     |
+|-----------------------------------------|-----------|---------|
+| Random Forest                           |  0.79323  | 0.81193 |
+| Red neuronal (parametros por defecto)   |  0.79323  | 0.81594 |
+| Red neuronal (rejilla de parámetros) v1 |  0.78195  | 0.80841 |
+| Red neuronal (rejilla de parámetros) v2 |  0.79323  | 0.81594 |
+
+### Conclusiones
+
+Los resultados proporcionados por los diferentes modelos son prácticamente idénticos entre sí. Para el caso del Random Forest y la red neuronal con los parámetros por defecto se obtiene la misma precisión tanto para el conjunto de entrenamiento como en el de validación. Para el caso de el AUC, las diferencias son prácticamente nulas.
+
+Por otro lado, resulta bastante curioso el hecho de poder obtener peores resultados haciendo uso de la supuesta red neuronal mejorada (con size entre 1 y 10; decay entre 0.1 y 0.5) que en el caso de la red neuronal por defecto y el Random Forest. De ampliar el rango de size hasta 20 se obtiene exactamente los mismos resultados que la red neuronal por defecto.

@@ -1,0 +1,2 @@
+Coloque aquí la estructura de directorios correspondiente al conjunto de datos con 20 clases.
+Básicamente es descargarse el dataset de la web que se indica en la memoria, descomprimirlo y quedarnos solamente con las 20 primeras clases.
